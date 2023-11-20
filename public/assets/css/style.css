@@ -1,0 +1,14 @@
+/* body {
+
+} */
+
+.firstContainer {
+    height: 80vh;
+    width: 100%;
+}
+
+.left, .right {
+    height: 80vh;
+    width: 100%;
+}
+
