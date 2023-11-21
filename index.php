@@ -72,7 +72,7 @@
                                 <!-- NOM -->
                                 <div class="mb-3">
                                     <label for="lastname" class="form-label">Nom* <span class="text-danger"><?=$error['lastname'] ?? ''?></span></label>
-                                    <input type="text" name="lastname" class="form-control" value="<?=$lastname ?? ''?>" id="lastname" placeholder="Dupont" required minlength="2" maxlength="50">
+                                    <input type="text" name="lastname" class="form-control" value="<?=$lastname ?? ''?>" id="lastname" placeholder="Dupont" required minlength="2" maxlength="50" pattern="^[A-Za-zéèçà \-]{2,50}$">
                                 </div>
                                 <!-- ANNEE DE NAISSANCE -->
                                 <div class="mb-3">
