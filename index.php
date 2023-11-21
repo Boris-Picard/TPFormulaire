@@ -18,7 +18,17 @@
         } else {
             $isOk = filter_var($email, FILTER_VALIDATE_EMAIL);
             if(!$isOk) {
-                $error['email'] = 'votre email n\'est pas valide';
+                $error['email'] = 'Votre email n\'est pas valide';
+            }
+        }
+        // ZIP CODE
+        $postalCode = filter_input(INPUT_POST, 'postalCode', FILTER_SANITIZE_NUMBER_INT);
+        if(empty($postalCode)) {
+            $error['postalCode'] = 'Veuillez entrer un code postal';
+        } else {
+            $isOk = filter_var($postalCode, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/^[0-9]{5}$/')));
+            if(!$isOk) {
+                $error['postalCode'] = 'Votre code postal n\'est pas valide';
             }
         }
     }
@@ -42,7 +52,7 @@
                 <div class="col-12 firstContainer">
                     <h1 class="text-center h1Title">S'inscrire</h1>
                     <?php if($_SERVER['REQUEST_METHOD'] != 'POST' || !empty($error)) { ?>
-                    <form method="post" action="<?=htmlspecialchars($_SERVER["PHP_SELF"])?>">
+                    <form method="post" action="<?=htmlspecialchars($_SERVER["PHP_SELF"])?>" novalidate>
                         <div class="row">
                             <div class="col-md-6 left">
                                 <!-- EMAIL -->
@@ -98,8 +108,8 @@
                             <div class="col-md-6 right">
                                 <!-- CODE POSTAL -->
                                 <div class="mb-3">
-                                    <label for="postalCode" class="form-label">Code postal*</label>
-                                    <input type="text" name="postalCode" class="form-control" id="postalCode" placeholder="exemple : 80000" pattern="^((0[1-9])|([1-8][0-9])|(9[0-8])|(2A)|(2B)) *([0-9]{3})?$">
+                                    <label for="postalCode" class="form-label">Code postal* <span class="text-danger"><?=$error['postalCode'] ?? ''?></span></label>
+                                    <input type="text" name="postalCode" class="form-control" value="<?=$postalCode ?? ''?>" id="postalCode" placeholder="exemple : 80000" required pattern="^[0-9]{5}$">
                                 </div>
                                 <!-- IMAGE DE PROFIL -->
                                 <div class="mb-3">
@@ -149,7 +159,7 @@
                     </form>
                     <?php } else { ?>
                         <div>
-                            <?=$lastname.' '.$email?>
+                            <?=$lastname.' '.$email.' '.$postalCode?>
                         </div>
                     <?php } ?>
                 </div>
