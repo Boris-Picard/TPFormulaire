@@ -1,15 +1,25 @@
 <?php
     $error = [];
-
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $lastname = htmlspecialchars($_POST['lastname']);
-        if(!empty($_POST['lastname']) 
-        && strlen($lastname) >= 2
-        && strlen($lastname) <= 50 
-        && preg_match("/^[A-Za-zéèçà]{2,50}(-| )?([A-Za-zéèçà]{2,50})?$/",$lastname)) {
-            $lastname = $_POST['lastname'];
+        // LASTNAME
+        $lastname = filter_input(INPUT_POST, 'lastname', FILTER_SANITIZE_SPECIAL_CHARS);
+        if(empty($lastname)) {
+            $error['lastname'] = 'Veuillez entrer un Nom';
         } else {
-            $error['lastname'] = 'Votre nom n\'est pas valide';
+            $isOk = filter_var($lastname, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/^[A-Za-zéèçà \-]{2,50}$/')));
+            if(!$isOk) {
+                $error['lastname'] = 'votre nom n\'est pas valide';
+                } 
+            }
+        // EMAIL
+        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+        if(empty($email)) {
+            $error['email'] = 'Veuillez entrer un email';
+        } else {
+            $isOk = filter_var($email, FILTER_VALIDATE_EMAIL);
+            if(!$isOk) {
+                $error['email'] = 'votre email n\'est pas valide';
+            }
         }
     }
 ?>
@@ -32,13 +42,13 @@
                 <div class="col-12 firstContainer">
                     <h1 class="text-center h1Title">S'inscrire</h1>
                     <?php if($_SERVER['REQUEST_METHOD'] != 'POST' || !empty($error)) { ?>
-                    <form method="post" action="">
+                    <form method="post" action="<?=htmlspecialchars($_SERVER["PHP_SELF"])?>">
                         <div class="row">
                             <div class="col-md-6 left">
                                 <!-- EMAIL -->
                                 <div class="mb-3">
-                                    <label for="email" class="form-label">Email address*</label>
-                                    <input type="email" name="email" class="form-control" id="email" placeholder="Dupont@aol.fr" pattern="^[A-Za-z]+@{1}[A-Za-z]+\.{1}[A-Za-z]{2,}$" maxlength="25">
+                                    <label for="email" class="form-label">Email address* <span class="text-danger"><?=$error['email'] ?? ''?></span></label>
+                                    <input type="email" name="email" value="<?=$email ?? ''?>" class="form-control" id="email" required placeholder="exemple@gmail.com" maxlength="25">
                                 </div>
                                 <!-- MOT DE PASSE -->
                                 <div class="mb-3">
@@ -53,7 +63,7 @@
                                 <!-- GENRE -->
                                 <div class="mb-3">
                                 <label for="gender" class="form-label">Séléctionnez un genre*</label>
-                                <select class="form-select" name="gender">
+                                <select class="form-select" name="gender" id="gender">
                                     <option selected disabled>Votre civilité</option>
                                     <option value="1">Mr</option>
                                     <option value="2">Mme</option>
@@ -62,7 +72,7 @@
                                 <!-- NOM -->
                                 <div class="mb-3">
                                     <label for="lastname" class="form-label">Nom* <span class="text-danger"><?=$error['lastname'] ?? ''?></span></label>
-                                    <input type="text" name="lastname" class="form-control" value="<?=$lastname ?? ''?>" id="lastname" placeholder="Dupont" required pattern="^[A-Za-zéèçà]{2,50}(-| )?([A-Za-zéèçà]{2,50})?$" minlength="2" maxlength="50">
+                                    <input type="text" name="lastname" class="form-control" value="<?=$lastname ?? ''?>" id="lastname" placeholder="Dupont" required minlength="2" maxlength="50">
                                 </div>
                                 <!-- ANNEE DE NAISSANCE -->
                                 <div class="mb-3">
@@ -72,7 +82,7 @@
                                 <div class="mb-3">
                                 <!-- LIEU DE NAISSANCE -->
                                 <label for="countryBirth" class="form-label">Pays de naissance*</label>
-                                    <select class="form-select" name="countryBirth">
+                                    <select class="form-select" name="countryBirth" id="countryBirth">
                                         <option selected disabled>Votre Pays</option>
                                         <option value="1">France</option>
                                         <option value="2">Belgique</option>
@@ -105,32 +115,32 @@
                                 <div class="mb-3 d-flex flex-column">
                                     <label for="languages" class="form-label">Quel langages web connaissez-vous?</label>
                                     <div class="form-check d-flex justify-content-around checkboxDiv">
-                                        <input class="form-check-input" name="checkbox" type="checkbox" value="html" id="checkboxHtml">
                                         <label class="form-check-label" for="checkbox">
+                                        <input class="form-check-input" name="checkbox" type="checkbox" value="html" id="checkboxHtml">
                                             HTML/CSS
                                         </label>
+                                        <label class="form-check-label" for="checkboxPhp">
                                         <input class="form-check-input" name="checkbox" type="checkbox" value="php" id="checkboxPhp">
-                                        <label class="form-check-label" for="checkbox">
                                             PHP
                                         </label>
                                         <input class="form-check-input" name="checkbox" type="checkbox" value="javascript" id="checkboxJs">
-                                        <label class="form-check-label" for="checkbox">
+                                        <label class="form-check-label" for="checkboxJs">
                                             Javascript
                                         </label>
                                         <input class="form-check-input" name="checkbox" type="checkbox" value="python" id="checkboxPython">
-                                        <label class="form-check-label" for="checkbox">
+                                        <label class="form-check-label" for="checkboxPython">
                                             Python
                                         </label>
                                         <input class="form-check-input" name="checkbox" type="checkbox" value="others" id="checkboxOthers">
-                                        <label class="form-check-label" for="checkbox">
+                                        <label class="form-check-label" for="checkboxOthers">
                                             Autres
                                         </label>
                                     </div>
                                 </div>
                                 <!-- TEXT AREA -->
                                 <div class="mb-3">
-                                    <label for="textArea" class="form-label">Expérience programmation :</label>
-                                    <textarea class="form-control" name="textArea" id="textArea" rows="6" placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir." maxlength="500"></textarea>
+                                    <label for="textArea" class="form-label">Expérience programmation : <span class="text-danger"></span> </label>
+                                    <textarea class="form-control" value="" name="textArea" id="textArea" rows="6" placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir." maxlength=""></textarea>
                                 </div>
                                 <!-- BOUTTON SUBMIT -->
                                 <button type="submit" class="btn btn-dark form-select mt-2">Submit</button>
@@ -139,7 +149,7 @@
                     </form>
                     <?php } else { ?>
                         <div>
-                            <?=$lastname?>
+                            <?=$lastname.' '.$email?>
                         </div>
                     <?php } ?>
                 </div>
