@@ -1,6 +1,16 @@
 <?php
     define('LAST_NAME', '^[A-Za-zéèçà \-]{2,50}$');
     define('POSTAL_CODE', '^[0-9]{5}$');
+    $countries = [
+        'France' => 'France', 
+        'Belgique' => 'Belgique', 
+        'Suisse' => 'Suisse', 
+        'Luxembourg' => 'Luxembourg', 
+        'Allemagne' => 'Allemagne', 
+        'Italie' => 'Italie', 
+        'Espagne' => 'Espagne', 
+        'Portugal' => 'Portugal'
+        ];
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = [];
         // LASTNAME
@@ -45,9 +55,10 @@
         $countryBirth = filter_input(INPUT_POST, 'countryBirth',FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         if(empty($countryBirth)) {
             $error['countryBirth'] = 'Veuillez séléctionner un Pays';
-        }elseif (!in_array($countryBirth, ['France', 'Belgique', 'Suisse', 'Luxembourg', 'Allemagne', 'Italie', 'Espagne', 'Portugal'])) {
+        } elseif (!in_array($countryBirth,$countries)) {
             $error['countryBirth'] = 'Ce n\'est pas un pays valide';
         }
+        // GENDER
         // CHECKBOX
         // DATE
         // CIVILITE
@@ -150,8 +161,9 @@
                                     id="countryBirth"
                                     required>
                                         <option selected disabled>Votre Pays</option>
-                                        <option value="France" <?= (isset($countryBirth) && $countryBirth=='France') ? 'selected' : ''?>>France</option>
-                                        
+                                        <?php foreach ($countries as $key => $country) {?>
+                                            <option value="<?=$key?>"<?=(isset($countryBirth) && $countryBirth==$key) ? 'selected' : ''?>><?=$country?></option>
+                                        <?php } ?>
                                     </select>
                                 </div>
                             </div>
