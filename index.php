@@ -1,16 +1,23 @@
 <?php
     define('LAST_NAME', '^[A-Za-zéèçà \-]{2,50}$');
     define('POSTAL_CODE', '^[0-9]{5}$');
-    $countries = [
-        'France' => 'France', 
-        'Belgique' => 'Belgique', 
-        'Suisse' => 'Suisse', 
-        'Luxembourg' => 'Luxembourg', 
-        'Allemagne' => 'Allemagne', 
-        'Italie' => 'Italie', 
-        'Espagne' => 'Espagne', 
-        'Portugal' => 'Portugal'
-        ];
+    define('URL_REGEX','^(http(s)?:\/\/)?([\w]+\.)?linkedin\.com\/(pub|in|profile)');
+    define('COUNTRY_ARRAY', [
+            'France', 
+            'Belgique', 
+            'Suisse', 
+            'Luxembourg', 
+            'Allemagne', 
+            'Italie', 
+            'Espagne', 
+            'Portugal'
+    ]);
+    define('CHECKBOX_ARRAY', [
+        'HTML/CSS', 
+        'PHP', 
+        'Javascript', 
+        'Python', 
+        'Others']);
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = [];
         // LASTNAME
@@ -46,8 +53,8 @@
         // URL
         $url = filter_input(INPUT_POST, 'url', FILTER_SANITIZE_URL);
         if(!empty($url)) {
-            $isOk = filter_var($url, FILTER_VALIDATE_URL);
-            if(!$isOk || !str_contains($url, 'linkedin.com/in/')) {
+            $isOk = filter_var($url, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.URL_REGEX.'/')));
+            if(!$isOk) {
                 $error['url'] = 'Votre url n\'est pas valide';
             }
         }
@@ -55,11 +62,15 @@
         $countryBirth = filter_input(INPUT_POST, 'countryBirth',FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         if(empty($countryBirth)) {
             $error['countryBirth'] = 'Veuillez séléctionner un Pays';
-        } elseif (!in_array($countryBirth,$countries)) {
+        } elseif (!in_array($countryBirth,COUNTRY_ARRAY)) {
             $error['countryBirth'] = 'Ce n\'est pas un pays valide';
         }
-        // GENDER
         // CHECKBOX
+        $checkbox = filter_input(INPUT_POST,'checkbox', FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_REQUIRE_ARRAY);
+        if(!empty($checkbox) && in_array($checkbox,CHECKBOX_ARRAY)) {
+            var_dump($checkbox);
+            $error['checkbox'] = "Veuillez séléctionner un langage valide";
+        }
         // DATE
         // CIVILITE
         // MOT DE PASSE        
@@ -128,11 +139,11 @@
                                     <label for="gender" class="form-label" required>Séléctionnez un genre*</label>
                                 </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="gender" id="gender">
+                                        <input class="form-check-input" type="radio" name="genderMrMme" id="gender" value="Mr">
                                         <label class="form-check-label" for="genderMr">Mr</label>
                                     </div>
                                     <div class="form-check form-check-inline mb-3">
-                                        <input class="form-check-input" type="radio" name="gender" id="gender">
+                                        <input class="form-check-input" type="radio" name="genderMrMme" id="gender" value="Mme">
                                         <label class="form-check-label" for="genderMme">Mme</label>
                                     </div>
                                 <!-- NOM -->
@@ -161,8 +172,8 @@
                                     id="countryBirth"
                                     required>
                                         <option selected disabled>Votre Pays</option>
-                                        <?php foreach ($countries as $key => $country) {?>
-                                            <option value="<?=$key?>"<?=(isset($countryBirth) && $countryBirth==$key) ? 'selected' : ''?>><?=$country?></option>
+                                        <?php foreach (COUNTRY_ARRAY as $country) {?>
+                                            <option value="<?=$country?>"<?=(isset($countryBirth) && $countryBirth==$country) ? 'selected' : ''?>><?=$country?></option>
                                         <?php } ?>
                                     </select>
                                 </div>
@@ -196,32 +207,17 @@
                                     class="form-control" 
                                     id="url" 
                                     placeholder="https://www.linkedin.com" 
-                                    pattern="https://.*" 
+                                    pattern=<?=URL_REGEX?>
                                     autocomplete="url">
                                 </div>
-                                <!-- LANGAGES CHECKBOX -->
+                                <!-- CHECKBOX -->
                                 <div class="mb-3 d-flex flex-column">
-                                    <label for="languages" class="form-label">Quel langages web connaissez-vous?</label>
+                                    <label for="languages" class="form-label">Quel langages web connaissez-vous? <span class="text-danger"><?=$error['checkbox'] ?? ''?></span></label>
                                     <div class="form-check d-flex justify-content-around checkboxDiv">
-                                        <label class="form-check-label" for="checkbox">
-                                        <input class="form-check-input" name="checkbox" type="checkbox" value="html" id="checkboxHtml">
-                                        HTML/CSS</label>
-                                        <label class="form-check-label" for="checkboxPhp">
-                                        <input class="form-check-input" name="checkbox" type="checkbox" value="php" id="checkboxPhp">
-                                            PHP
-                                        </label>
-                                        <label class="form-check-label" for="checkboxJs">
-                                        <input class="form-check-input" name="checkbox" type="checkbox" value="javascript" id="checkboxJs">
-                                            Javascript
-                                        </label>
-                                        <label class="form-check-label" for="checkboxPython">
-                                        <input class="form-check-input" name="checkbox" type="checkbox" value="python" id="checkboxPython">
-                                            Python
-                                        </label>
-                                        <label class="form-check-label" for="checkboxOthers">
-                                        <input class="form-check-input" name="checkbox" type="checkbox" value="others" id="checkboxOthers">
-                                            Autres
-                                        </label>
+                                        <?php foreach (CHECKBOX_ARRAY as $langages) { ?>
+                                            <input class="form-check-input" name="checkbox[]" type="checkbox" value="<?=$langages?>" id="<?=$langages?>">
+                                            <label class="form-check-label" for="<?=$langages?>"><?=$langages?></label>
+                                        <?php } ?> 
                                     </div>
                                 </div>
                                 <!-- TEXT AREA -->
@@ -230,7 +226,7 @@
                                     <textarea class="form-control" value="" name="textArea" id="textArea" rows="6" placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir." maxlength=""></textarea>
                                 </div>
                                 <!-- BOUTTON SUBMIT -->
-                                <button type="submit" class="btn btn-dark form-select mt-2">Submit</button>
+                                <button type="submit" class="btn btn-dark form-select mt-2">Envoyer</button>
                             </div>
                         </div>
                     </form>
