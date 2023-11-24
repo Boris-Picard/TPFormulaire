@@ -67,9 +67,12 @@
         }
         // CHECKBOX
         $checkbox = filter_input(INPUT_POST,'checkbox', FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_REQUIRE_ARRAY);
-        if(!empty($checkbox) && in_array($checkbox,CHECKBOX_ARRAY)) {
-            var_dump($checkbox);
-            $error['checkbox'] = "Veuillez séléctionner un langage valide";
+        if($checkbox != null) {
+            foreach ($checkbox as $langages) {
+                if(!empty($checkbox) && !in_array($langages,CHECKBOX_ARRAY)) {
+                    $error['checkbox'] = "Veuillez séléctionner un langage valide";
+                }
+            }
         }
         // DATE
         // CIVILITE
@@ -215,8 +218,8 @@
                                     <label for="languages" class="form-label">Quel langages web connaissez-vous? <span class="text-danger"><?=$error['checkbox'] ?? ''?></span></label>
                                     <div class="form-check d-flex justify-content-around checkboxDiv">
                                         <?php foreach (CHECKBOX_ARRAY as $langages) { ?>
-                                            <input class="form-check-input" name="checkbox[]" type="checkbox" value="<?=$langages?>" id="<?=$langages?>">
                                             <label class="form-check-label" for="<?=$langages?>"><?=$langages?></label>
+                                            <input class="form-check-input" name="checkbox[]" type="checkbox" value="<?=$langages?>" id="<?=$langages?>" <?=(isset($checkbox) && in_array($langages,$checkbox)) ? 'checked' : ''?>>
                                         <?php } ?> 
                                     </div>
                                 </div>
@@ -238,6 +241,9 @@
                             <p class="fw-bold">URL : <?=$url?></p>
                             <p class="fw-bold">Country Birth : <?=$countryBirth?></p>
                             <p class="fw-bold">Gender : <?=$gender?></p>
+                            <p class="fw-bold">Checkbox : <?php foreach ($checkbox as $langages) { ?>
+                                <?=$langages?>
+                            <?php } ?></p>
                         </div>
                     <?php } ?>
                 </div>
