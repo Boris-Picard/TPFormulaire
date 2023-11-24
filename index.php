@@ -18,6 +18,7 @@
         'Javascript', 
         'Python', 
         'Others']);
+    define('DATE_REGEX', '^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$');
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = [];
         // LASTNAME
@@ -75,6 +76,16 @@
             }
         }
         // DATE
+        $dateBirth = filter_input(INPUT_POST,'dateBirth', FILTER_SANITIZE_NUMBER_INT);
+        var_dump($dateBirth);
+        if(!empty($dateBirth)) {
+            $isOk = filter_var($dateBirth, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.DATE_REGEX.'/')));
+            if (!$isOk) {
+                $error['dateBirth'] = 'Veuillez entrer une date valide';
+            }
+        }
+
+
         // CIVILITE
         // MOT DE PASSE        
         // IMAGE DE PROFIL
@@ -159,13 +170,13 @@
                                     id="lastname" 
                                     placeholder="Dupont" 
                                     required 
-                                    pattern=<?=LAST_NAME?> 
+                                    pattern="<?=LAST_NAME?>" 
                                     autocomplete="family-name">
                                 </div>
                                 <!-- ANNEE DE NAISSANCE -->
                                 <div class="mb-3">
-                                    <label for="dateBirth" class="form-label">Année de naissance</label>
-                                    <input type="date" name="dateBirth" class="form-control" id="dateBirth" min="1950-01-01" max="2005-12-31">
+                                    <label for="dateBirth" class="form-label">Année de naissance <span class="text-danger"><?=$error['dateBirth'] ?? ''?></span></label>
+                                    <input type="date" name="dateBirth" class="form-control" id="dateBirth" pattern="<?=DATE_REGEX?>" value="<?=$dateBirth ?? ''?>">
                                 </div>
                                 <div class="mb-3">
                                 <!-- LIEU DE NAISSANCE -->
@@ -192,7 +203,7 @@
                                     id="postalCode" 
                                     placeholder="exemple : 80000" 
                                     required 
-                                    pattern=<?=POSTAL_CODE?>
+                                    pattern="<?=POSTAL_CODE?>"
                                     autocomplete="postal-code" 
                                     inputmode="numeric">
                                 </div>
@@ -210,7 +221,7 @@
                                     class="form-control" 
                                     id="url" 
                                     placeholder="https://www.linkedin.com" 
-                                    pattern=<?=URL_REGEX?>
+                                    pattern="<?=URL_REGEX?>"
                                     autocomplete="url">
                                 </div>
                                 <!-- CHECKBOX -->
@@ -240,10 +251,11 @@
                             <p class="fw-bold">Postal Code : <?=$postalCode?></p>
                             <p class="fw-bold">URL : <?=$url?></p>
                             <p class="fw-bold">Country Birth : <?=$countryBirth?></p>
-                            <p class="fw-bold">Gender : <?=$gender?></p>
                             <p class="fw-bold">Checkbox : <?php foreach ($checkbox as $langages) { ?>
                                 <?=$langages?>
                             <?php } ?></p>
+                            <p class="fw-bold">Birthday : <?=$dateBirth?></p>
+                            <p class="fw-bold">Gender : <?=$gender?></p>
                         </div>
                     <?php } ?>
                 </div>
