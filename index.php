@@ -21,6 +21,8 @@
         'Python', 
         'Others']);
     define('DATE_REGEX', '^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$');
+    define('PASSWORD_REGEX', '(?=.*[A-Z])(?=.*[0-9]).{8,}');
+    define('TEXTAREA_REGEX', '^.{0,500}$');
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = [];
         // LASTNAME
@@ -69,7 +71,7 @@
             $error['countryBirth'] = 'Ce n\'est pas un pays valide';
         }
         // CHECKBOX
-        $checkbox = filter_input(INPUT_POST,'checkbox', FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_REQUIRE_ARRAY);
+        $checkbox = filter_input(INPUT_POST,'checkbox', FILTER_SANITIZE_SPECIAL_CHARS, FILTER_REQUIRE_ARRAY);
         if($checkbox != null) {
             foreach ($checkbox as $langages) {
                 if(!empty($checkbox) && !in_array($langages,CHECKBOX_ARRAY)) {
@@ -90,13 +92,34 @@
         if(empty($gender)) {
             $error['gender'] = 'Veuillez séléctionner un genre';
         } else {
-            $isOk = filter_var($gender, FILTER_VALIDATE_INT, array("options"=>array("min_range" => 0, "max_range" => 1 )));
+            $isOk = filter_var($gender, FILTER_VALIDATE_INT, array("options"=>array("min_range" => 1, "max_range" => 2 )));
             if(!$isOk) {
                 $error['gender'] = 'Le genre n\'est pas valide';
             }
         }
-        // MOT DE PASSE        
+        // MOT DE PASSE   
+        $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $confirmPassword = filter_input(INPUT_POST, 'confirmPassword', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        if(empty($password) || empty($confirmPassword)) {
+            $error['password'] = 'Veuillez entrer un password';
+        } else {
+            $isOk = filter_var($password, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.PASSWORD_REGEX.'/')));
+            $isConfirmOk = filter_var($confirmPassword, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.PASSWORD_REGEX.'/')));
+            $hash = password_hash($isOk, PASSWORD_DEFAULT);
+            if(!$isOk && !$isConfirmOk) {
+                $error['password'] = "Veuillez entrer un mot de passe valide";
+            } elseif($isOk != $isConfirmOk) {
+                $error['confirmPassword'] = "Veuillez entrer le même mot de passe";
+            }
+        }
         // TEXTAREA
+        $textArea = filter_input(INPUT_POST, 'textArea', FILTER_SANITIZE_SPECIAL_CHARS);
+        if(!empty($textArea)) {
+            $isOk = filter_var($textArea, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.TEXTAREA_REGEX.'/')));
+            if(!$isOk) {
+                $error['textArea'] = 'Veuillez ne pas dépasser les 500 charactères';
+            } 
+        }
         // IMAGE DE PROFIL
     }
 ?>
@@ -137,35 +160,37 @@
                                 </div>
                                 <!-- MOT DE PASSE -->
                                 <div class="mb-3">
-                                    <label for="password" class="form-label">Mot de passe*</label> 
+                                    <label for="password" class="form-label">Mot de passe* <span class="text-danger"><?=$error['password'] ?? ''?></span></label> 
                                     <input type="password" 
                                     name="password" 
                                     class="form-control" 
                                     id="password" 
                                     minlength="8" 
-                                    pattern="^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$">
+                                    required
+                                    pattern="<?=PASSWORD_REGEX?>">
                                 </div>
                                 <!-- CONFIRMER LE MOT DE PASSE -->
                                 <div class="mb-3">
-                                    <label for="confirmPassword" class="form-label">Confirmer le mot de passe*</label> 
+                                    <label for="confirmPassword" class="form-label">Confirmer le mot de passe* <span class="text-danger"><?=$error['confirmPassword'] ?? ''?></span></label> 
                                     <input type="password" 
                                     name="confirmPassword" 
                                     class="form-control" 
                                     id="confirmPassword" 
-                                    minlength="8" 
-                                    pattern="^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$">
+                                    minlength="8"
+                                    required 
+                                    pattern="<?=PASSWORD_REGEX?>">
                                 </div>
                                 <!-- CIVILITE -->
                                 <div class="">
                                     <label for="gender" class="form-label" required>Séléctionnez un genre* <span class="text-danger"><?=$error['gender'] ?? ''?></span></label>
                                 </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="gender" id="0" value="0">
-                                        <label class="form-check-label" for="0">Mr</label>
+                                        <input class="form-check-input" type="radio" name="gender" id="1" value="1" <?=(isset($gender) && $gender == 1 ? 'checked' : '')?>>
+                                        <label class="form-check-label" for="1">Mr</label>
                                     </div>
                                     <div class="form-check form-check-inline mb-3">
-                                        <input class="form-check-input" type="radio" name="gender" id="1" value="1">
-                                        <label class="form-check-label" for="1">Mme</label>
+                                        <input class="form-check-input" type="radio" name="gender" id="2" value="2" <?=(isset($gender) && $gender == 2 ? 'checked' : '')?>>
+                                        <label class="form-check-label" for="2">Mme</label>
                                     </div>
                                 <!-- NOM -->
                                 <div class="mb-3">
@@ -243,8 +268,8 @@
                                 </div>
                                 <!-- TEXT AREA -->
                                 <div class="mb-3">
-                                    <label for="textArea" class="form-label">Expérience programmation : <span class="text-danger"></span> </label>
-                                    <textarea class="form-control" value="" name="textArea" id="textArea" rows="6" placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir." maxlength=""></textarea>
+                                    <label for="textArea" class="form-label">Expérience programmation : <span class="text-danger"><?=$error['textArea'] ?? ''?></span></label>
+                                    <textarea class="form-control" value="<?=$textArea ?? ''?>" name="textArea" id="textArea" rows="6" pattern="<?=TEXTAREA_REGEX?>" placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir." maxlength="500"></textarea>
                                 </div>
                                 <!-- BOUTTON SUBMIT -->
                                 <button type="submit" class="btn btn-dark form-select mt-2">Envoyer</button>
@@ -258,17 +283,24 @@
                             <p class="fw-bold">Postal Code : <?=$postalCode?></p>
                             <p class="fw-bold">URL : <?=$url?></p>
                             <p class="fw-bold">Country Birth : <?=$countryBirth?></p>
-                            <p class="fw-bold">Checkbox : <?php foreach ($checkbox as $langages) { ?>
-                                <?=$langages?>
-                            <?php } ?></p>
+                            <p class="fw-bold">Checkbox : 
+                                <?php if($checkbox != null) { ?>
+                                    <?php foreach ($checkbox as $langages) { ?>
+                                    <?=$langages?>
+                                    <? } ?>
+                                    <?php } ?></p>
+                                <?php } ?>
                             <p class="fw-bold">Birthday : <?=$dateBirth?></p>
-                            <?php if($gender == 0) { ?>
-                                Genre : "Mr"
-                            <?php } elseif($gender == 1) { ?>
-                                Genre : "Mme"
+                            <?php if($gender == 1) { ?>
+                                <p class="fw-bold">Genre : Mr</p>
+                            <?php } elseif($gender == 2) { ?>
+                                <p class="fw-bold">Genre : Mme</p>
                             <?php } ?>
+                            <p class="fw-bold">Password : <?php if(password_verify($isOk, $hash)) { ?>
+                                <span class='text-success bg-dark fw-bold'>Success</span>
+                            <?php } ?></p>
                         </div>
-                    <?php } ?>
+                        <?php } ?>
                 </div>
             </div>
         </div>
