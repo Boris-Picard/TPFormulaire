@@ -1,4 +1,6 @@
 <?php
+    $minDate = (date('Y') - 100)."-01-01";
+    $maxDate = date('Y-m-d');
     define('LAST_NAME', '^[A-Za-zéèçà \-]{2,50}$');
     define('POSTAL_CODE', '^[0-9]{5}$');
     define('URL_REGEX','^(http(s)?:\/\/)?([\w]+\.)?linkedin\.com\/(pub|in|profile)');
@@ -77,20 +79,25 @@
         }
         // DATE
         $dateBirth = filter_input(INPUT_POST,'dateBirth', FILTER_SANITIZE_NUMBER_INT);
-        var_dump($dateBirth);
         if(!empty($dateBirth)) {
             $isOk = filter_var($dateBirth, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.DATE_REGEX.'/')));
-            if (!$isOk) {
+            if (!$isOk || $dateBirth >= $maxDate || $dateBirth <= $minDate) {
                 $error['dateBirth'] = 'Veuillez entrer une date valide';
             }
         }
-
-
         // CIVILITE
+        $gender = intval(filter_input(INPUT_POST,'gender', FILTER_SANITIZE_NUMBER_INT));
+        if(empty($gender)) {
+            $error['gender'] = 'Veuillez séléctionner un genre';
+        } else {
+            $isOk = filter_var($gender, FILTER_VALIDATE_INT, array("options"=>array("min_range" => 0, "max_range" => 1 )));
+            if(!$isOk) {
+                $error['gender'] = 'Le genre n\'est pas valide';
+            }
+        }
         // MOT DE PASSE        
-        // IMAGE DE PROFIL
         // TEXTAREA
-        
+        // IMAGE DE PROFIL
     }
 ?>
 <!DOCTYPE html>
@@ -150,15 +157,15 @@
                                 </div>
                                 <!-- CIVILITE -->
                                 <div class="">
-                                    <label for="gender" class="form-label" required>Séléctionnez un genre*</label>
+                                    <label for="gender" class="form-label" required>Séléctionnez un genre* <span class="text-danger"><?=$error['gender'] ?? ''?></span></label>
                                 </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="genderMrMme" id="gender" value="Mr">
-                                        <label class="form-check-label" for="genderMr">Mr</label>
+                                        <input class="form-check-input" type="radio" name="gender" id="0" value="0">
+                                        <label class="form-check-label" for="0">Mr</label>
                                     </div>
                                     <div class="form-check form-check-inline mb-3">
-                                        <input class="form-check-input" type="radio" name="genderMrMme" id="gender" value="Mme">
-                                        <label class="form-check-label" for="genderMme">Mme</label>
+                                        <input class="form-check-input" type="radio" name="gender" id="1" value="1">
+                                        <label class="form-check-label" for="1">Mme</label>
                                     </div>
                                 <!-- NOM -->
                                 <div class="mb-3">
@@ -176,7 +183,7 @@
                                 <!-- ANNEE DE NAISSANCE -->
                                 <div class="mb-3">
                                     <label for="dateBirth" class="form-label">Année de naissance <span class="text-danger"><?=$error['dateBirth'] ?? ''?></span></label>
-                                    <input type="date" name="dateBirth" class="form-control" id="dateBirth" pattern="<?=DATE_REGEX?>" value="<?=$dateBirth ?? ''?>">
+                                    <input type="date" name="dateBirth" class="form-control" id="dateBirth" pattern="<?=DATE_REGEX?>" value="<?=$dateBirth ?? date('Y-m-d')?>" min="<?=$minDate?>" max="<?=$maxDate?>">
                                 </div>
                                 <div class="mb-3">
                                 <!-- LIEU DE NAISSANCE -->
@@ -255,7 +262,11 @@
                                 <?=$langages?>
                             <?php } ?></p>
                             <p class="fw-bold">Birthday : <?=$dateBirth?></p>
-                            <p class="fw-bold">Gender : <?=$gender?></p>
+                            <?php if($gender == 0) { ?>
+                                Genre : "Mr"
+                            <?php } elseif($gender == 1) { ?>
+                                Genre : "Mme"
+                            <?php } ?>
                         </div>
                     <?php } ?>
                 </div>
