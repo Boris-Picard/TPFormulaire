@@ -114,7 +114,6 @@
                 $error['confirmPassword'] = "Veuillez entrer le même mot de passe";
             }
         }
-        
         // TEXTAREA
         $textArea = filter_input(INPUT_POST, 'textArea', FILTER_SANITIZE_SPECIAL_CHARS);
         if(!empty($textArea)) {
@@ -136,9 +135,9 @@
         $fileSize = $_FILES['profilPic']['size'];
         // $profilPic = filter_input(INPUT_POST, 'profilPic', FILTER_SANITIZE_SPECIAL_CHARS);
         if(!empty($file) && $fileError == 0) {
-            $filePath = '' .  $fileTemp  ;
-            move_uploaded_file($fileTemp, $filePath);
-            $upload = "<img src=\".$filePath\" height=200 width=300 />";
+            $filePath = './public/assets/img/' .  $_FILES['profilPic']['name'];
+            $moveFile = move_uploaded_file($fileTemp, $filePath);
+            $upload = "<img src=\".$filePath\" class=\"img-fluid rounded\" height=200 width=300 />";
             if(!in_array($fileName['extension'], $allowedExtension)) {
                 $error['profilPic'] = 'Veuillez upload une extension valide';
             }
@@ -150,9 +149,8 @@
             }
             if(in_array($fileName['extension'], $notAllowedExtension)) {
                 $error['profilPic'] = 'Fichier PHP non autorisé';
-                exit;
             }
-        }
+        } 
     }
 
 ?>
