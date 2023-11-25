@@ -100,8 +100,10 @@
         // MOT DE PASSE   
         $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $confirmPassword = filter_input(INPUT_POST, 'confirmPassword', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        if(empty($password) || empty($confirmPassword)) {
-            $error['password'] = 'Veuillez entrer un password';
+        if(empty($password)) {
+            $error['password'] = 'Veuillez entrer un mot de passe';
+        } elseif(empty($confirmPassword)) {
+            $error['confirmPassword'] = 'Veuillez entrer un mot de passe';
         } else {
             $isOk = filter_var($password, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.PASSWORD_REGEX.'/')));
             $isConfirmOk = filter_var($confirmPassword, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.PASSWORD_REGEX.'/')));
@@ -112,16 +114,47 @@
                 $error['confirmPassword'] = "Veuillez entrer le même mot de passe";
             }
         }
+        
         // TEXTAREA
         $textArea = filter_input(INPUT_POST, 'textArea', FILTER_SANITIZE_SPECIAL_CHARS);
         if(!empty($textArea)) {
-            $isOk = filter_var($textArea, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.TEXTAREA_REGEX.'/')));
-            if(!$isOk) {
+            $isConfirm = filter_var($textArea, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.TEXTAREA_REGEX.'/')));
+            if(!$isConfirm) {
                 $error['textArea'] = 'Veuillez ne pas dépasser les 500 charactères';
             } 
         }
         // IMAGE DE PROFIL
+        $file = $_FILES['profilPic'];
+        $fileTemp = $_FILES['profilPic']['tmp_name'];
+        $fileError = $_FILES['profilPic']['error'];
+        $maxSize = 500000;
+        $allowedExtension = ['jpg', 'jpeg', 'png'];
+        $notAllowedExtension = ['php'];
+        $allowedType = ['image/jpg', 'image/jpeg', 'image/png'];
+        $fileName = pathinfo($_FILES['profilPic']['name']);
+        $fileType = $_FILES['profilPic']['type'];
+        $fileSize = $_FILES['profilPic']['size'];
+        // $profilPic = filter_input(INPUT_POST, 'profilPic', FILTER_SANITIZE_SPECIAL_CHARS);
+        if(!empty($file) && $fileError == 0) {
+            $filePath = '' .  $fileTemp  ;
+            move_uploaded_file($fileTemp, $filePath);
+            $upload = "<img src=\".$filePath\" height=200 width=300 />";
+            if(!in_array($fileName['extension'], $allowedExtension)) {
+                $error['profilPic'] = 'Veuillez upload une extension valide';
+            }
+            if(!in_array($fileType, $allowedType)) {
+                $error['profilPic'] = 'Le type de format n\'est pas valide';
+            }
+            if($fileSize > $maxSize) {
+                $error['profilPic'] = 'L\'image est trop grande ne dépassez pas les 500 Ko';
+            }
+            if(in_array($fileName['extension'], $notAllowedExtension)) {
+                $error['profilPic'] = 'Fichier PHP non autorisé';
+                exit;
+            }
+        }
     }
+
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -142,7 +175,7 @@
                 <div class="col-12 firstContainer">
                     <h1 class="text-center h1Title">S'inscrire</h1>
                     <?php if($_SERVER['REQUEST_METHOD'] != 'POST' || !empty($error)) { ?>
-                    <form method="POST" novalidate>
+                    <form method="POST" enctype="multipart/form-data" novalidate>
                         <div class="row">
                             <div class="col-md-6 left">
                                 <!-- EMAIL -->
@@ -240,9 +273,17 @@
                                     inputmode="numeric">
                                 </div>
                                 <!-- IMAGE DE PROFIL -->
+                                
                                 <div class="mb-3">
-                                    <label for="profilPic" class="form-label">Photo de profil</label>
-                                    <input type="file" name="profilPic" class="form-control" id="profilPic">
+                                    <label for="profilPic" class="form-label">Photo de profil <span class="text-danger"><?=$error['profilPic'] ?? ''?></span></label>
+                                    <input type="file" 
+                                    name="profilPic" 
+                                    value="<?=$file ?? ''?>" 
+                                    class="form-control" 
+                                    id="profilPic" 
+                                    size="500000"
+                                    accept=".jpg, .jpeg, .png"
+                                    >
                                 </div>
                                 <!-- LIEN LINKEDIN -->
                                 <div class="mb-3">
@@ -269,7 +310,14 @@
                                 <!-- TEXT AREA -->
                                 <div class="mb-3">
                                     <label for="textArea" class="form-label">Expérience programmation : <span class="text-danger"><?=$error['textArea'] ?? ''?></span></label>
-                                    <textarea class="form-control" value="<?=$textArea ?? ''?>" name="textArea" id="textArea" rows="6" pattern="<?=TEXTAREA_REGEX?>" placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir." maxlength="500"></textarea>
+                                    <textarea class="form-control" 
+                                    value="<?=$textArea ?? ''?>" 
+                                    name="textArea" 
+                                    id="textArea" 
+                                    rows="6" 
+                                    pattern="<?=TEXTAREA_REGEX?>" 
+                                    placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir." 
+                                    maxlength="500"></textarea>
                                 </div>
                                 <!-- BOUTTON SUBMIT -->
                                 <button type="submit" class="btn btn-dark form-select mt-2">Envoyer</button>
@@ -299,6 +347,8 @@
                             <p class="fw-bold">Password : <?php if(password_verify($isOk, $hash)) { ?>
                                 <span class='text-success bg-dark fw-bold'>Success</span>
                             <?php } ?></p>
+                            <p class="fw-bold">Expériences : <?=$textArea?></p>
+                            <p class="fw-bold">Profil Pic : <?=$upload?></p>
                         </div>
                         <?php } ?>
                 </div>
