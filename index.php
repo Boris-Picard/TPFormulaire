@@ -120,7 +120,7 @@
         if(!empty($textArea)) {
             $isConfirm = filter_var($textArea, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.TEXTAREA_REGEX.'/')));
             if(!$isConfirm) {
-                $error['textArea'] = 'Veuillez ne pas dépasser les 500 charactères';
+                $error['textArea'] = 'Veuillez ne pas dépasser les 500 caractères';
             } 
         }
         // IMAGE DE PROFIL
