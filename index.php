@@ -22,7 +22,6 @@
         'Others']);
     define('DATE_REGEX', '^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$');
     define('PASSWORD_REGEX', '(?=.*[A-Z])(?=.*[0-9]).{8,}');
-    define('TEXTAREA_REGEX', '^.{0,500}$');
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = [];
         // LASTNAME
@@ -97,9 +96,9 @@
                 $error['gender'] = 'Le genre n\'est pas valide';
             }
         }
-        // MOT DE PASSE   
-        $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        $confirmPassword = filter_input(INPUT_POST, 'confirmPassword', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        // MOT DE PASSE
+        $password = filter_input(INPUT_POST, 'password');
+        $confirmPassword = filter_input(INPUT_POST, 'confirmPassword');
         if(empty($password)) {
             $error['password'] = 'Veuillez entrer un mot de passe';
         } elseif(empty($confirmPassword)) {
@@ -107,18 +106,18 @@
         } else {
             $isOk = filter_var($password, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.PASSWORD_REGEX.'/')));
             $isConfirmOk = filter_var($confirmPassword, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.PASSWORD_REGEX.'/')));
-            $hash = password_hash($isOk, PASSWORD_DEFAULT);
             if(!$isOk && !$isConfirmOk) {
                 $error['password'] = "Veuillez entrer un mot de passe valide";
             } elseif($isOk != $isConfirmOk) {
                 $error['confirmPassword'] = "Veuillez entrer le même mot de passe";
+            } else {
+                $hash = password_hash($isOk, PASSWORD_DEFAULT);
             }
         }
         // TEXTAREA
         $textArea = filter_input(INPUT_POST, 'textArea', FILTER_SANITIZE_SPECIAL_CHARS);
         if(!empty($textArea)) {
-            $isConfirm = filter_var($textArea, FILTER_VALIDATE_REGEXP, array("options"=>array("regexp"=>'/'.TEXTAREA_REGEX.'/')));
-            if(!$isConfirm) {
+            if(strlen($textArea) > 500) {
                 $error['textArea'] = 'Veuillez ne pas dépasser les 500 caractères';
             } 
         }
@@ -135,30 +134,28 @@
         $fileSize = $_FILES['profilPic']['size'];
         // $profilPic = filter_input(INPUT_POST, 'profilPic', FILTER_SANITIZE_SPECIAL_CHARS);
         if(!empty($file) && $fileError == 0) {
-            $filePath = './public/assets/img/' .  $_FILES['profilPic']['name'];
-            $moveFile = move_uploaded_file($fileTemp, $filePath);
-            $upload = "<img src=\".$filePath\" class=\"img-fluid rounded\" height=200 width=300 />";
             if(!in_array($fileName['extension'], $allowedExtension)) {
                 $error['profilPic'] = 'Veuillez upload une extension valide';
-            }
-            if(!in_array($fileType, $allowedType)) {
+            } elseif(!in_array($fileType, $allowedType)) {
                 $error['profilPic'] = 'Le type de format n\'est pas valide';
-            }
-            if($fileSize > $maxSize) {
+            } elseif($fileSize > $maxSize) {
                 $error['profilPic'] = 'L\'image est trop grande ne dépassez pas les 500 Ko';
-            }
-            if(in_array($fileName['extension'], $notAllowedExtension)) {
+            } elseif(in_array($fileName['extension'], $notAllowedExtension)) {
                 $error['profilPic'] = 'Fichier PHP non autorisé';
+            } else {
+                $filePath = './public/assets/img/' .  $_FILES['profilPic']['name'];
+                $moveFile = move_uploaded_file($fileTemp, $filePath);
+                $upload = "<img src=\".$filePath\" class=\"img-fluid rounded\" height=200 width=300 />";
             }
         } 
     }
-
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="./public/assets/css/style.css">
     <link rel="stylesheet" href="./public/assets/framework/bootstrap.min.css">
     <link rel="stylesheet" href="./public/assets/framework/bootstrap.min.js">
@@ -200,6 +197,10 @@
                                     required
                                     pattern="<?=PASSWORD_REGEX?>">
                                 </div>
+                                <div class="eyeNone">
+                                    <i class="bi bi-eye-slash fs-2"></i>
+                                    <i class="bi bi-eye fs-2"></i>
+                                </div>
                                 <!-- CONFIRMER LE MOT DE PASSE -->
                                 <div class="mb-3">
                                     <label for="confirmPassword" class="form-label">Confirmer le mot de passe* <span class="text-danger"><?=$error['confirmPassword'] ?? ''?></span></label> 
@@ -207,7 +208,6 @@
                                     name="confirmPassword" 
                                     class="form-control" 
                                     id="confirmPassword" 
-                                    minlength="8"
                                     required 
                                     pattern="<?=PASSWORD_REGEX?>">
                                 </div>
@@ -271,7 +271,6 @@
                                     inputmode="numeric">
                                 </div>
                                 <!-- IMAGE DE PROFIL -->
-                                
                                 <div class="mb-3">
                                     <label for="profilPic" class="form-label">Photo de profil <span class="text-danger"><?=$error['profilPic'] ?? ''?></span></label>
                                     <input type="file" 
@@ -309,13 +308,12 @@
                                 <div class="mb-3">
                                     <label for="textArea" class="form-label">Expérience programmation : <span class="text-danger"><?=$error['textArea'] ?? ''?></span></label>
                                     <textarea class="form-control" 
-                                    value="<?=$textArea ?? ''?>" 
+                                    value="textArea" 
                                     name="textArea" 
                                     id="textArea" 
                                     rows="6" 
-                                    pattern="<?=TEXTAREA_REGEX?>" 
-                                    placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir." 
-                                    maxlength="500"></textarea>
+                                    maxlength="500"
+                                    placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir."><?=$textArea ?? ''?></textarea>
                                 </div>
                                 <!-- BOUTTON SUBMIT -->
                                 <button type="submit" class="btn btn-dark form-select mt-2">Envoyer</button>
@@ -323,32 +321,40 @@
                         </div>
                     </form>
                     <?php } else { ?>
-                        <div>
-                            <p class="fw-bold">Nom : <?=$lastname?></p>
-                            <p class="fw-bold">Email : <?=$email?></p>
-                            <p class="fw-bold">Postal Code : <?=$postalCode?></p>
-                            <p class="fw-bold">URL : <?=$url?></p>
-                            <p class="fw-bold">Country Birth : <?=$countryBirth?></p>
-                            <p class="fw-bold">Checkbox : 
-                                <?php if($checkbox != null) { ?>
-                                    <?php foreach ($checkbox as $langages) { ?>
-                                    <?=$langages?>
-                                    <? } ?>
-                                    <?php } ?></p>
-                                <?php } ?>
-                            <p class="fw-bold">Birthday : <?=$dateBirth?></p>
-                            <?php if($gender == 1) { ?>
-                                <p class="fw-bold">Genre : Mr</p>
-                            <?php } elseif($gender == 2) { ?>
-                                <p class="fw-bold">Genre : Mme</p>
-                            <?php } ?>
-                            <p class="fw-bold">Password : <?php if(password_verify($isOk, $hash)) { ?>
-                                <span class='text-success bg-dark fw-bold'>Success</span>
-                            <?php } ?></p>
-                            <p class="fw-bold">Expériences : <?=$textArea?></p>
-                            <p class="fw-bold">Profil Pic : <?=$upload?></p>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="row">
+                                    <div class="col-md-6 col-12">
+                                            <p class="fw-bold">Nom : <?=$lastname?></p>
+                                            <p class="fw-bold">Email : <?=$email?></p>
+                                            <p class="fw-bold">Country Birth : <?=$countryBirth?></p>
+                                            <p class="fw-bold">Checkbox : 
+                                            <p class="fw-bold">Birthday : <?=$dateBirth?></p>
+                                            <?php if($gender == 1) { ?>
+                                                <p class="fw-bold">Genre : Mr</p>
+                                            <?php } elseif($gender == 2) { ?>
+                                                <p class="fw-bold">Genre : Mme</p>
+                                            <?php } ?>
+                                            <p class="fw-bold">Password : <?php if(password_verify($isOk, $hash)) { ?>
+                                                <span class='text-success bg-dark fw-bold'>Success</span>
+                                            <?php } ?></p>
+                                        </div>
+                                        <div class="col-md-6 col-12">
+                                            <p class="fw-bold">Postal Code : <?=$postalCode?></p>
+                                            <p class="fw-bold">Profil Pic : <?=$upload?></p>
+                                            <p class="fw-bold">URL : <?=$url?></p>
+                                            <?php if($checkbox != null) { ?>
+                                            <?php foreach ($checkbox as $langages) { ?>
+                                            <?=$langages?>
+                                            <? } ?>
+                                            <?php } ?></p>
+                                            <?php } ?>
+                                            <p class="fw-bold">Expériences : <?=$textArea?></p>
+                                        </div>
+                                    <?php } ?>
+                                </div>
+                            </div>
                         </div>
-                        <?php } ?>
                 </div>
             </div>
         </div>

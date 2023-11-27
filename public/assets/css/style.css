@@ -27,6 +27,25 @@ body {
     display: grid;
 }
 
+.eyeNone {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    transform: translateY(-50%);
+    top: 255px;
+    right: 52%;
+}
+
+.bi-eye-slash {
+    display: none;
+}
+
+.bi-eye:hover, .bi-eye-slash:hover {
+    color: red;
+    cursor: pointer;
+}
+
+
 .h1Title {
     padding: 25px 0 25px 0 !important;
 }
@@ -59,5 +78,13 @@ label {
     }
     .main {
         display: grid;
+    }
+    .eyeNone {
+        display: flex;
+        align-items: center;
+        position: absolute;
+        transform: translateY(-50%);
+        top: 248px;
+        right: 4%;
     }
 }
