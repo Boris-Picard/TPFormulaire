@@ -22,6 +22,8 @@
         'Others']);
     define('DATE_REGEX', '^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$');
     define('PASSWORD_REGEX', '(?=.*[A-Z])(?=.*[0-9]).{8,}');
+    define('IMAGE_TYPES',  ['image/jpeg', 'image/png']);
+    define('IMAGE_SIZE', 2*1024*1024);
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = [];
         // LASTNAME
@@ -122,32 +124,31 @@
             } 
         }
         // IMAGE DE PROFIL
-        $file = $_FILES['profilPic'];
-        $fileTemp = $_FILES['profilPic']['tmp_name'];
-        $fileError = $_FILES['profilPic']['error'];
-        $maxSize = 500000;
-        $allowedExtension = ['jpg', 'jpeg', 'png'];
-        $notAllowedExtension = ['php'];
-        $allowedType = ['image/jpg', 'image/jpeg', 'image/png'];
-        $fileName = pathinfo($_FILES['profilPic']['name']);
-        $fileType = $_FILES['profilPic']['type'];
-        $fileSize = $_FILES['profilPic']['size'];
-        // $profilPic = filter_input(INPUT_POST, 'profilPic', FILTER_SANITIZE_SPECIAL_CHARS);
-        if(!empty($file) && $fileError == 0) {
-            if(!in_array($fileName['extension'], $allowedExtension)) {
-                $error['profilPic'] = 'Veuillez upload une extension valide';
-            } elseif(!in_array($fileType, $allowedType)) {
-                $error['profilPic'] = 'Le type de format n\'est pas valide';
-            } elseif($fileSize > $maxSize) {
-                $error['profilPic'] = 'L\'image est trop grande ne dépassez pas les 500 Ko';
-            } elseif(in_array($fileName['extension'], $notAllowedExtension)) {
-                $error['profilPic'] = 'Fichier PHP non autorisé';
-            } else {
-                $filePath = './public/assets/img/' .  $_FILES['profilPic']['name'];
-                $moveFile = move_uploaded_file($fileTemp, $filePath);
-                $upload = "<img src=\".$filePath\" class=\"img-fluid rounded\" height=200 width=300 />";
+        try {
+            if(empty($_FILES['profilPic']['name'])) {
+                throw new Exception("Photo obligatoire");
             }
-        } 
+            if($_FILES['profilPic']['error'] != 0) {
+                throw new Exception("Error");
+            }
+            if(!in_array($_FILES['profilPic']['type'], IMAGE_TYPES)) {
+                throw new Exception("Format non autorisé");
+            }
+            if($_FILES['profilPic']['size'] > IMAGE_SIZE) {
+                throw new Exception("Image trop grande");
+            }
+            
+            $fileName = uniqid('img_');
+            $extension = pathinfo($_FILES['profilPic']['name'], PATHINFO_EXTENSION);
+
+            $from = $_FILES['profilPic']['tmp_name'];
+            $to = './public/uploads/users/' .$fileName.'.'.$extension;
+
+            $moveFile = move_uploaded_file($from,$to);
+            $upload = "<img src=\".$to\" class=\"img-fluid rounded-circle\" height=200 width=300 />";
+        } catch (\Throwable $th) {
+            $error['profilPic'] = $th->getMessage();
+        }
     }
 ?>
 <!DOCTYPE html>
@@ -275,12 +276,10 @@
                                     <label for="profilPic" class="form-label">Photo de profil <span class="text-danger"><?=$error['profilPic'] ?? ''?></span></label>
                                     <input type="file" 
                                     name="profilPic" 
-                                    value="<?=$file ?? ''?>" 
+                                    value="profilPic" 
                                     class="form-control" 
                                     id="profilPic" 
-                                    size="500000"
-                                    accept=".jpg, .jpeg, .png"
-                                    >
+                                    accept=".jpg, .jpeg, .png">
                                 </div>
                                 <!-- LIEN LINKEDIN -->
                                 <div class="mb-3">
@@ -311,7 +310,7 @@
                                     value="textArea" 
                                     name="textArea" 
                                     id="textArea" 
-                                    rows="6" 
+                                    rows="7 " 
                                     maxlength="500"
                                     placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir."><?=$textArea ?? ''?></textarea>
                                 </div>
