@@ -1,7 +1,10 @@
 <?php 
-    include('./config/regex.php');
-    include('./config/constantes.php');
-    
+    require_once __DIR__ . '/../config/regex.php';
+    require_once __DIR__ . '/../config/constants.php';
+
+    $minDate = (date('Y') - 100)."-01-01";
+    $maxDate = date('Y-m-d');
+
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $error = [];
     // LASTNAME
@@ -128,4 +131,6 @@
         $error['profilPic'] = $th->getMessage();
     }
 }
-?>
+include __DIR__ . '/../views/templates/header.php';
+include __DIR__ . '/../views/signUp.php';
+include __DIR__ . '/../views/templates/footer.php';

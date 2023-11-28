@@ -1,6 +1,5 @@
 <?php 
-    $minDate = (date('Y') - 100)."-01-01";
-    $maxDate = date('Y-m-d');
+    
     
     define('COUNTRY_ARRAY', [
             'France', 
@@ -21,4 +20,3 @@
     
     define('IMAGE_TYPES',  ['image/jpeg', 'image/png']);
     define('IMAGE_SIZE', 2*1024*1024);
-?>
