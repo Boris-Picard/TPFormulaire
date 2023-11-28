@@ -1,29 +1,7 @@
 <?php 
-    $minDate = (date('Y') - 100)."-01-01";
-    $maxDate = date('Y-m-d');
-    define('LAST_NAME', '^[A-Za-zéèçà \-]{2,50}$');
-    define('POSTAL_CODE', '^[0-9]{5}$');
-    define('URL_REGEX','^(http(s)?:\/\/)?([\w]+\.)?linkedin\.com\/(pub|in|profile)');
-    define('COUNTRY_ARRAY', [
-            'France', 
-            'Belgique', 
-            'Suisse', 
-            'Luxembourg', 
-            'Allemagne', 
-            'Italie', 
-            'Espagne', 
-            'Portugal'
-]);
-    define('CHECKBOX_ARRAY', [
-        'HTML/CSS', 
-        'PHP', 
-        'Javascript', 
-        'Python', 
-        'Others']);
-    define('DATE_REGEX', '^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$');
-    define('PASSWORD_REGEX', '(?=.*[A-Z])(?=.*[0-9]).{8,}');
-    define('IMAGE_TYPES',  ['image/jpeg', 'image/png']);
-    define('IMAGE_SIZE', 2*1024*1024);
+    include('./config/regex.php');
+    include('./config/constantes.php');
+    
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $error = [];
     // LASTNAME
