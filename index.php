@@ -1,4 +1,3 @@
 <?php 
-    header('Location: /controllers/signUp-ctrl.php');
+    header('Location: /controlers/signUp-ctrl.php');
     die;
-
