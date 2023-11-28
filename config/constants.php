@@ -1,6 +1,4 @@
 <?php 
-    
-    
     define('COUNTRY_ARRAY', [
             'France', 
             'Belgique', 

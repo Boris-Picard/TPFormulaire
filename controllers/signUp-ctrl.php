@@ -123,10 +123,12 @@
         $extension = pathinfo($_FILES['profilPic']['name'], PATHINFO_EXTENSION);
 
         $from = $_FILES['profilPic']['tmp_name'];
-        $to = './public/uploads/users/' .$fileName.'.'.$extension;
+        $to =  __DIR__ . '/../public/uploads/users/' .$fileName.'.'.$extension;
+
+        $front = $fileName . '.'. $extension;
 
         $moveFile = move_uploaded_file($from,$to);
-        $upload = "<img src=\".$to\" class=\"img-fluid rounded-circle\" height=200 width=300 />";
+
     } catch (\Throwable $th) {
         $error['profilPic'] = $th->getMessage();
     }
